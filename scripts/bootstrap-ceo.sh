@@ -17,4 +17,5 @@ fi
 
 port="$(grep -E '^PAPERCLIP_PORT=' "$ROOT/.env" 2>/dev/null | head -1 | cut -d= -f2 | tr -d '\r')"
 port="${port:-3100}"
-print_remote_access_hint "$port"
+pub="$(grep -E '^PAPERCLIP_PUBLIC_URL=' "$ROOT/.env" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '\r')"
+print_remote_access_hint "$port" "$pub"

@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# One-shot: clone Paperclip, write .env for localhost + 9Router on host, compose up,
-# wait for health, onboard (config + bootstrap CEO invite), restart server.
+# Clone Paperclip, .env, sync public URL + allowed Host (VPS), 9Router, compose, onboard.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 # shellcheck source=lib/access-hint.sh
 . "$ROOT/scripts/lib/access-hint.sh"
+# shellcheck source=lib/vps-env.sh
+. "$ROOT/scripts/lib/vps-env.sh"
 
 COMPOSE_FILE="${COMPOSE_FILE:-$ROOT/docker-compose.yml}"
 VENDOR_DIR="${VENDOR_DIR:-$ROOT/vendor/paperclip}"
@@ -14,16 +15,19 @@ PAPERCLIP_GIT_URL="${PAPERCLIP_GIT_URL:-https://github.com/paperclipai/paperclip
 PAPERCLIP_GIT_REF="${PAPERCLIP_GIT_REF:-master}"
 FORCE_ONBOARD=0
 UPDATE_VENDOR=0
+LOCAL_ONLY=0
 
 usage() {
-  echo "Automates Paperclip Docker install, localhost URLs, 9Router proxy env, and CEO bootstrap."
-  echo "Usage: $0 [--force-onboard] [--update-vendor]"
+  echo "Automates Paperclip Docker install for a VPS (public IP + Host allow-list) or local-only."
+  echo "Usage: $0 [--local] [--force-onboard] [--update-vendor]"
+  echo "  --local           Loopback-only (127.0.0.1), no public hostname allow-list"
   echo "  --force-onboard   Run onboard -y even if config.json already exists"
   echo "  --update-vendor   git fetch + reset to PAPERCLIP_GIT_REF and rebuild image"
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --local) LOCAL_ONLY=1 ;;
     --force-onboard) FORCE_ONBOARD=1 ;;
     --update-vendor) UPDATE_VENDOR=1 ;;
     -h|--help) usage; exit 0 ;;
@@ -52,14 +56,13 @@ ensure_env_file() {
   if [[ -f "$ROOT/.env" ]]; then
     return 0
   fi
-  echo "Creating $ROOT/.env from localhost + 9Router defaults..."
+  echo "Creating $ROOT/.env from VPS + 9Router defaults (public URL/hostnames filled next step)..."
   local auth agent
   auth="$(openssl rand -hex 32)"
   agent="$(openssl rand -hex 32)"
   cat >"$ROOT/.env" <<EOF
+PAPERCLIP_NETWORK_PROFILE=vps
 PAPERCLIP_PORT=3100
-PAPERCLIP_PUBLIC_URL=http://127.0.0.1:3100
-PAPERCLIP_ALLOWED_HOSTNAMES=127.0.0.1,localhost
 PAPERCLIP_DEPLOYMENT_MODE=authenticated
 PAPERCLIP_DEPLOYMENT_EXPOSURE=private
 BETTER_AUTH_SECRET=${auth}
@@ -96,10 +99,7 @@ ensure_paperclip_src() {
 }
 
 read_env_kv() {
-  local key="$1"
-  local line
-  line="$(grep -E "^${key}=" "$ROOT/.env" 2>/dev/null | head -1 || true)"
-  echo "${line#*=}" | tr -d '\r'
+  env_get "$ROOT/.env" "$1" | tr -d '\r'
 }
 
 ninerouter_probe() {
@@ -164,12 +164,18 @@ run_onboard() {
 
 main() {
   ensure_env_file
+  if [[ "$LOCAL_ONLY" -eq 1 ]]; then
+    force_local_network_profile "$ROOT"
+  fi
+  sync_vps_env_file "$ROOT"
+
   ensure_paperclip_src
   ninerouter_probe
 
   echo "Building and starting stack..."
   docker compose -f "$COMPOSE_FILE" --env-file "$ROOT/.env" build server
   docker compose -f "$COMPOSE_FILE" --env-file "$ROOT/.env" up -d
+  docker compose -f "$COMPOSE_FILE" --env-file "$ROOT/.env" up -d --no-deps --force-recreate server
 
   wait_health
 
@@ -183,9 +189,13 @@ main() {
   port="$(read_env_kv PAPERCLIP_PORT)"
   port="${port:-3100}"
   echo ""
-  echo "Done. UI: http://127.0.0.1:${port}"
+  echo "Done."
+  echo "  Local:  http://127.0.0.1:${port}"
+  if [[ -n "${VPS_PUBLIC_URL:-}" ]] && [[ "${VPS_PUBLIC_URL}" != *"127.0.0.1"* ]]; then
+    echo "  Public: ${VPS_PUBLIC_URL}"
+  fi
   echo "Use a 9Router model id (e.g. from /v1/models) in agent settings."
-  print_remote_access_hint "$port"
+  print_remote_access_hint "$port" "${VPS_PUBLIC_URL:-}"
 }
 
 main "$@"

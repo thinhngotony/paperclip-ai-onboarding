@@ -1,68 +1,79 @@
-# Paperclip local onboarding (Docker + 9Router)
+# Paperclip VPS onboarding (Docker + 9Router)
 
-Automates [Paperclip](https://github.com/paperclipai/paperclip) on Docker with:
+Automates [Paperclip](https://github.com/paperclipai/paperclip) on Docker so it is **usable from the VPS public IP** (or a domain) without manual `allowed-hostname` steps.
 
-- **UI and auth** at `http://127.0.0.1:3100` (no temporary public domain)
-- **9Router** on the same machine: LLM traffic goes to `http://host.docker.internal:<port>/v1` from the Paperclip container (9Router itself stays on `http://127.0.0.1:20128` by default on the host)
-- **Postgres** in Compose, **first admin** via `paperclipai onboard -y` (bootstrap CEO invite printed once)
+- **Default (`PAPERCLIP_NETWORK_PROFILE=vps`)**: detects the server’s **public IPv4**, sets `PAPERCLIP_PUBLIC_URL` and `PAPERCLIP_ALLOWED_HOSTNAMES` (includes that IP plus `127.0.0.1` and `localhost`), recreates the app container, then onboards.
+- **9Router** on the same host: LLM calls use `http://host.docker.internal:<port>/v1` from the Paperclip container (default port `20128` on the host).
+- **Local-only**: `./scripts/setup.sh --local` keeps everything on `127.0.0.1` only.
 
 ## Requirements
 
 - Docker + `docker compose`
 - Git, curl, openssl
-- 9Router listening on the host (default port `20128`)
+- Outbound HTTPS (for public-IP detection), unless you set `PAPERCLIP_VPS_HOST` or `PAPERCLIP_PUBLIC_URL`
+- TCP **3100** (or `PAPERCLIP_PORT`) open in your cloud firewall if you browse by public IP
+- 9Router on the host if you use the default LLM proxy env vars
 
-## One command
+## One command (typical VPS)
 
 ```bash
 ./scripts/setup.sh
 ```
 
-First run creates `.env` with generated secrets, clones Paperclip into `vendor/paperclip` (gitignored), builds the image, starts the stack, waits for `/api/health`, runs onboarding, and restarts the server.
+Open the printed **Public** URL (or `http://YOUR_IP:3100`), accept the firewall prompt if needed, then use the **bootstrap invite** link.
+
+## If the Host header error still appears
+
+Re-sync env and recreate the server (e.g. after changing IP or domain):
+
+```bash
+./scripts/reapply-vps-env.sh
+```
+
+Or set explicitly in `.env` then reapply:
+
+```bash
+# Either fixed IP
+PAPERCLIP_VPS_HOST=203.0.113.50
+
+# Or full URL (HTTPS / domain)
+PAPERCLIP_PUBLIC_URL=https://paperclip.example.com
+```
+
+Then:
+
+```bash
+./scripts/reapply-vps-env.sh
+```
 
 ## Options
 
 | Flag | Meaning |
 |------|--------|
-| `--force-onboard` | Run onboarding again even if `config.json` already exists |
-| `--update-vendor` | `git fetch` / reset Paperclip source to `PAPERCLIP_GIT_REF`, then rebuild |
+| `--local` | `PAPERCLIP_NETWORK_PROFILE=local` — loopback only, SSH tunnel friendly |
+| `--force-onboard` | Run `onboard -y` again even if `config.json` exists |
+| `--update-vendor` | Refresh `vendor/paperclip` from git and rebuild |
 
 Environment (optional):
 
-| Variable | Default | Meaning |
-|----------|---------|--------|
-| `PAPERCLIP_GIT_URL` | `https://github.com/paperclipai/paperclip.git` | Upstream repo |
-| `PAPERCLIP_GIT_REF` | `master` | Branch or tag |
-| `VENDOR_DIR` | `./vendor/paperclip` | Clone path |
+| Variable | Meaning |
+|----------|--------|
+| `PAPERCLIP_GIT_URL` / `PAPERCLIP_GIT_REF` | Paperclip git source |
+| `VENDOR_DIR` | Clone path (default `./vendor/paperclip`) |
 
-## After install
+## Scripts
 
-- Open the printed **invite URL** once to create the instance admin.
-- Pick **model IDs** from your 9Router `/v1/models` list for agents (e.g. combo names like `free` / `super`).
-
-### Remote server (SSH): browser on your laptop
-
-Paperclip is configured with **`http://127.0.0.1:3100`** — that is the **server’s** loopback. If you SSH in and have no GUI browser on the host, forward the port to your laptop:
-
-```bash
-ssh -N -L 3100:127.0.0.1:3100 USER@YOUR_SERVER
-```
-
-Use the same **3100** as `PAPERCLIP_PORT` in `.env` if you changed it. Leave that SSH session open, then on your laptop open **http://127.0.0.1:3100** (and the printed `/invite/...` link — it stays valid through the tunnel).
-
-`setup.sh` and `bootstrap-ceo.sh` print this reminder after they run. Anytime:
-
-```bash
-./scripts/print-remote-hint.sh
-```
-
-New invite (fails if an admin already exists unless forced):
-
-```bash
-./scripts/bootstrap-ceo.sh
-./scripts/bootstrap-ceo.sh --force
-```
+| Script | Purpose |
+|--------|--------|
+| `./scripts/setup.sh` | Full install + VPS env + compose + onboard |
+| `./scripts/reapply-vps-env.sh` | Refresh public URL / allowed hosts + recreate server |
+| `./scripts/bootstrap-ceo.sh` | New CEO invite (`--force` to replace) |
+| `./scripts/print-remote-hint.sh` | SSH tunnel + public URL hints |
 
 ## Manual `.env`
 
-Copy `.env.example` to `.env` and set `BETTER_AUTH_SECRET` / `PAPERCLIP_AGENT_JWT_SECRET` if you do not use the generated file from `setup.sh`.
+See `.env.example`. If you create `.env` by hand, run `./scripts/reapply-vps-env.sh` once so `PAPERCLIP_PUBLIC_URL` and `PAPERCLIP_ALLOWED_HOSTNAMES` are applied.
+
+## SSH tunnel (optional)
+
+If you only browse via SSH port forward, use `--local` or keep `PAPERCLIP_NETWORK_PROFILE=local`. See `./scripts/print-remote-hint.sh`.
