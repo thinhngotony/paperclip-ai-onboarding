@@ -71,9 +71,7 @@ BETTER_AUTH_SECRET=${auth}
 PAPERCLIP_AGENT_JWT_SECRET=${agent}
 NINEROUTER_PORT=20128
 OPENAI_BASE_URL=http://host.docker.internal:20128/v1
-ANTHROPIC_BASE_URL=http://host.docker.internal:20128/v1
 OPENAI_API_KEY=9router-local
-ANTHROPIC_API_KEY=9router-local
 EOF
   echo "Wrote new .env (secrets generated)."
 }

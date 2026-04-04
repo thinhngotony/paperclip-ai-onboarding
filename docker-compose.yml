@@ -37,8 +37,10 @@ services:
       PAPERCLIP_AGENT_JWT_SECRET: "${PAPERCLIP_AGENT_JWT_SECRET:?Set PAPERCLIP_AGENT_JWT_SECRET in .env}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-9router-local}"
       OPENAI_BASE_URL: "${OPENAI_BASE_URL:-http://host.docker.internal:20128/v1}"
-      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-9router-local}"
-      ANTHROPIC_BASE_URL: "${ANTHROPIC_BASE_URL:-http://host.docker.internal:20128/v1}"
+      # Claude Code uses the Anthropic API. 9Router only accepts that if an Anthropic provider
+      # is configured in the 9Router dashboard; otherwise leave these unset and use Codex/OpenAI adapters.
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      ANTHROPIC_BASE_URL: "${ANTHROPIC_BASE_URL:-}"
     volumes:
       - paperclip-data:/paperclip
     depends_on:

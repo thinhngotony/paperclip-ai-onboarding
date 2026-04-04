@@ -3,7 +3,7 @@
 Automates [Paperclip](https://github.com/paperclipai/paperclip) on Docker so it is **usable from the VPS public IP** (or a domain) without manual `allowed-hostname` steps.
 
 - **Default (`PAPERCLIP_NETWORK_PROFILE=vps`)**: detects the server’s **public IPv4**, sets `PAPERCLIP_PUBLIC_URL` and `PAPERCLIP_ALLOWED_HOSTNAMES` (includes that IP plus `127.0.0.1` and `localhost`), recreates the app container, then onboards.
-- **9Router** on the same host: LLM calls use `http://host.docker.internal:<port>/v1` from the Paperclip container (default port `20128` on the host).
+- **9Router** on the same host: by default only **`OPENAI_*`** is set so **Codex / OpenAI-compatible** agents can use `http://host.docker.internal:<port>/v1` with a dashboard API key (default port `20128`).
 - **Local-only**: `./scripts/setup.sh --local` keeps everything on `127.0.0.1` only.
 
 ## Requirements
@@ -77,10 +77,24 @@ Environment (optional):
 | `./scripts/reapply-vps-env.sh` | Refresh public URL / allowed hosts + recreate server |
 | `./scripts/bootstrap-ceo.sh` | New CEO invite (`--force` to replace) |
 | `./scripts/print-remote-hint.sh` | SSH tunnel + public URL hints |
+| `START_HERE.txt` | Written by setup / `bootstrap-ceo` — invite URL + public app link (gitignored) |
 
 ## Manual `.env`
 
 See `.env.example`. If you create `.env` by hand, run `./scripts/reapply-vps-env.sh` once so `PAPERCLIP_PUBLIC_URL` and `PAPERCLIP_ALLOWED_HOSTNAMES` are applied.
+
+## Claude adapter + 9Router (“hello probe failed”, `ANTHROPIC_API_KEY` warning)
+
+**Claude Code** in the container talks to **`ANTHROPIC_BASE_URL` using the Anthropic API shape.** Many 9Router setups only have **OpenAI-style** `/v1/chat/completions` wired to free keys; the Anthropic route then returns errors like *No active credentials for provider: anthropic*, and Paperclip’s environment test shows **Claude hello probe failed**.
+
+**Default in this repo:** `ANTHROPIC_API_KEY` and `ANTHROPIC_BASE_URL` are **empty** so the server does not force broken Anthropic calls. Use agents that go through **`OPENAI_API_KEY` + `OPENAI_BASE_URL`** (e.g. **Codex Local**) with a 9Router model id from `/v1/models`.
+
+**If you need the Claude adapter:** configure an **Anthropic** (or Claude-via-subscription) provider in the **9Router dashboard**, then set in `.env` the API key and base URL 9Router documents for Anthropic traffic, and recreate the server:
+
+```bash
+./scripts/reapply-vps-env.sh   # if you only changed hostname; or:
+docker compose --env-file .env up -d --no-deps --force-recreate server
+```
 
 ## SSH tunnel (optional)
 
