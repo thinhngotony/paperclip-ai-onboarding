@@ -8,6 +8,8 @@ cd "$ROOT"
 . "$ROOT/scripts/lib/access-hint.sh"
 # shellcheck source=lib/vps-env.sh
 . "$ROOT/scripts/lib/vps-env.sh"
+# shellcheck source=lib/finalize-invite.sh
+. "$ROOT/scripts/lib/finalize-invite.sh"
 
 COMPOSE_FILE="${COMPOSE_FILE:-$ROOT/docker-compose.yml}"
 VENDOR_DIR="${VENDOR_DIR:-$ROOT/vendor/paperclip}"
@@ -153,12 +155,6 @@ run_onboard() {
     echo "onboard exited with status $st — full log: $log" >&2
     exit "$st"
   fi
-  if grep -q 'Invite URL:' "$log" 2>/dev/null; then
-    echo ""
-    echo "---- Bootstrap invite (open in browser) ----"
-    grep 'Invite URL:' "$log" | sed 's/.*Invite URL:[[:space:]]*//' | head -1
-    echo "--------------------------------------------"
-  fi
   rm -f "$log"
 }
 
@@ -185,17 +181,19 @@ main() {
     run_onboard
   fi
 
-  local port
+  local port pub
   port="$(read_env_kv PAPERCLIP_PORT)"
   port="${port:-3100}"
+  pub="$(read_env_kv PAPERCLIP_PUBLIC_URL)"
+  [[ -z "$pub" ]] && pub="http://127.0.0.1:${port}"
+
   echo ""
-  echo "Done."
-  echo "  Local:  http://127.0.0.1:${port}"
-  if [[ -n "${VPS_PUBLIC_URL:-}" ]] && [[ "${VPS_PUBLIC_URL}" != *"127.0.0.1"* ]]; then
-    echo "  Public: ${VPS_PUBLIC_URL}"
-  fi
+  echo "Setup finished. Resolving admin invite + writing START_HERE.txt ..."
+  emit_post_setup_summary "$ROOT" "$COMPOSE_FILE" "$ROOT/.env" "$port" "$pub" || true
+
   echo "Use a 9Router model id (e.g. from /v1/models) in agent settings."
-  print_remote_access_hint "$port" "${VPS_PUBLIC_URL:-}"
+  echo "  Local UI: http://127.0.0.1:${port}"
+  print_remote_access_hint "$port" "$pub"
 }
 
 main "$@"

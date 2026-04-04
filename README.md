@@ -20,7 +20,15 @@ Automates [Paperclip](https://github.com/paperclipai/paperclip) on Docker so it 
 ./scripts/setup.sh
 ```
 
-Open the printed **Public** URL (or `http://YOUR_IP:3100`), accept the firewall prompt if needed, then use the **bootstrap invite** link.
+After `./scripts/setup.sh` finishes, the terminal shows a **clear admin invite link** (matching your public URL) and writes the same steps to **`START_HERE.txt`** in this directory (`START_HERE.txt` is gitignored). Open that invite once in a browser, then use Paperclip at your public URL.
+
+If the UI only says “check startup logs”, run:
+
+```bash
+./scripts/bootstrap-ceo.sh --force
+```
+
+That prints the link again and refreshes `START_HERE.txt`.
 
 ## If the Host header error still appears
 
