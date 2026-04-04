@@ -40,10 +40,27 @@ Environment (optional):
 - Open the printed **invite URL** once to create the instance admin.
 - Pick **model IDs** from your 9Router `/v1/models` list for agents (e.g. combo names like `free` / `super`).
 
-New invite after admin exists:
+### Remote server (SSH): browser on your laptop
+
+Paperclip is configured with **`http://127.0.0.1:3100`** — that is the **server’s** loopback. If you SSH in and have no GUI browser on the host, forward the port to your laptop:
+
+```bash
+ssh -N -L 3100:127.0.0.1:3100 USER@YOUR_SERVER
+```
+
+Use the same **3100** as `PAPERCLIP_PORT` in `.env` if you changed it. Leave that SSH session open, then on your laptop open **http://127.0.0.1:3100** (and the printed `/invite/...` link — it stays valid through the tunnel).
+
+`setup.sh` and `bootstrap-ceo.sh` print this reminder after they run. Anytime:
+
+```bash
+./scripts/print-remote-hint.sh
+```
+
+New invite (fails if an admin already exists unless forced):
 
 ```bash
 ./scripts/bootstrap-ceo.sh
+./scripts/bootstrap-ceo.sh --force
 ```
 
 ## Manual `.env`

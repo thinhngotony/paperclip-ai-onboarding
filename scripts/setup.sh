@@ -5,6 +5,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=lib/access-hint.sh
+. "$ROOT/scripts/lib/access-hint.sh"
 
 COMPOSE_FILE="${COMPOSE_FILE:-$ROOT/docker-compose.yml}"
 VENDOR_DIR="${VENDOR_DIR:-$ROOT/vendor/paperclip}"
@@ -183,6 +185,7 @@ main() {
   echo ""
   echo "Done. UI: http://127.0.0.1:${port}"
   echo "Use a 9Router model id (e.g. from /v1/models) in agent settings."
+  print_remote_access_hint "$port"
 }
 
 main "$@"
