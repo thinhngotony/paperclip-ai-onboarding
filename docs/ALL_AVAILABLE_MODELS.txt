@@ -1,0 +1,133 @@
+# All Available Models in Your 9Router Instance
+# Generated: 2026-04-05
+# Total: 83 models
+
+# HOW TO USE IN PAPERCLIP:
+# 1. Open Paperclip UI: http://42.96.13.174:3101
+# 2. Go to Settings → Agents → Select your agent
+# 3. Change Adapter to "Codex Local" or "OpenCode Local"
+# 4. Copy ANY model ID from below and paste into Model field
+# 5. Save and test
+
+# IMPORTANT: Use the EXACT model ID as shown below (case-sensitive, with prefix)
+
+cc/claude-haiku-4-5-20251001
+cc/claude-opus-4-5-20251101
+cc/claude-opus-4-6
+cc/claude-sonnet-4-5-20250929
+cc/claude-sonnet-4-6
+claude
+cu/claude-4.5-haiku
+cu/claude-4.5-opus
+cu/claude-4.5-opus-high
+cu/claude-4.5-opus-high-thinking
+cu/claude-4.5-sonnet
+cu/claude-4.5-sonnet-thinking
+cu/claude-4.6-opus-max
+cu/claude-4.6-sonnet-medium-thinking
+cu/default
+cu/gemini-3-flash-preview
+cu/gpt-5.2
+cu/gpt-5.2-codex
+cu/gpt-5.3-codex
+cu/kimi-k2.5
+cx/gpt-5.1
+cx/gpt-5.1-codex
+cx/gpt-5.1-codex-max
+cx/gpt-5.1-codex-mini
+cx/gpt-5.1-codex-mini-high
+cx/gpt-5.2
+cx/gpt-5.2-codex
+cx/gpt-5.3-codex
+cx/gpt-5.3-codex-high
+cx/gpt-5.3-codex-low
+cx/gpt-5.3-codex-none
+cx/gpt-5.3-codex-spark
+cx/gpt-5.3-codex-xhigh
+cx/gpt-5.4
+cx/gpt-5-codex
+cx/gpt-5-codex-mini
+free
+gh/claude-haiku-4.5
+gh/claude-opus-4.1
+gh/claude-opus-4.5
+gh/claude-opus-4.6
+gh/claude-sonnet-4
+gh/claude-sonnet-4.5
+gh/claude-sonnet-4.6
+gh/gemini-2.5-pro
+gh/gemini-3-flash-preview
+gh/gemini-3-pro-preview
+gh/gpt-3.5-turbo
+gh/gpt-4
+gh/gpt-4.1
+gh/gpt-4o
+gh/gpt-4o-mini
+gh/gpt-5
+gh/gpt-5.1
+gh/gpt-5.1-codex
+gh/gpt-5.1-codex-max
+gh/gpt-5.1-codex-mini
+gh/gpt-5.2
+gh/gpt-5.2-codex
+gh/gpt-5.3-codex
+gh/gpt-5.4
+gh/gpt-5-codex
+gh/gpt-5-mini
+gh/grok-code-fast-1
+gh/oswe-vscode-prime
+kc/anthropic/claude-opus-4-20250514
+kc/anthropic/claude-sonnet-4-20250514
+kc/deepseek/deepseek-chat
+kc/deepseek/deepseek-reasoner
+kc/google/gemini-2.5-flash
+kc/google/gemini-2.5-pro
+kc/openai/gpt-4.1
+kc/openai/o3
+kr/claude-haiku-4.5
+kr/claude-sonnet-4.5
+kr/deepseek-3.1
+kr/deepseek-3.2
+kr/qwen3-coder-next
+nvidia
+nvidia/moonshotai/kimi-k2.5
+nvidia/z-ai/glm4.7
+opus-4.5
+super
+
+# RECOMMENDED MODELS BY USE CASE:
+
+# For Coding:
+cx/gpt-5.4
+gh/gpt-5.3-codex
+cu/gpt-5.3-codex
+gh/grok-code-fast-1
+
+# For General AI:
+gh/claude-opus-4.6
+cu/claude-4.6-opus-max
+gh/claude-sonnet-4.6
+opus-4.5
+
+# For Budget/Free:
+free
+gh/gpt-4o-mini
+gh/claude-haiku-4.5
+super
+
+# For Maximum Context:
+gh/gpt-5.1-codex-max
+cu/claude-4.6-opus-max
+
+# For Reasoning:
+kc/deepseek/deepseek-reasoner
+cu/claude-4.5-opus-high-thinking
+
+# NOTE: Models with prefixes:
+# gh/ = GitHub tier
+# cu/ = Cursor tier
+# cx/ = Codex tier
+# cc/ = Claude Code tier
+# kc/ = Kimi/cloud providers
+# kr/ = Korean providers
+# No prefix = Direct models (claude, free, super, opus-4.5, nvidia)
