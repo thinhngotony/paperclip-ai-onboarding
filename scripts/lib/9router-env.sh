@@ -125,6 +125,12 @@ sync_9router_llm_env() {
     echo "Keeping direct Anthropic API settings (ANTHROPIC_API_KEY sk-ant-* + api.anthropic.com); not overwriting ANTHROPIC_* for 9Router."
   fi
 
+  # Default: do NOT set ANTHROPIC_* for 9Router (Claude CLI has model prefix issues)
+  # Users should use Codex Local adapter which works reliably with 9Router
+  preserve_anthropic=1
+  echo "Skipping ANTHROPIC_* configuration for 9Router (Claude CLI incompatible with model prefixes)."
+  echo "Use Codex Local or OpenCode Local adapter in Paperclip instead."
+
   local key=""
   local existing_openai
   existing_openai="$(env_get "$envf" OPENAI_API_KEY)"
@@ -158,12 +164,9 @@ sync_9router_llm_env() {
     "NINEROUTER_PORT=${port}" \
     "OPENAI_BASE_URL=${base_url}" \
     "OPENAI_API_KEY=${key}"
-  if [[ "$preserve_anthropic" -eq 0 ]]; then
-    append_env_kv "$envf" \
-      "ANTHROPIC_BASE_URL=${anthropic_base}" \
-      "ANTHROPIC_API_KEY=${key}"
-    echo "Claude Code: ANTHROPIC_BASE_URL=${anthropic_base} (same API key as OPENAI_API_KEY for 9Router Bearer auth)."
-  fi
+
+  # Note: ANTHROPIC_* not set by default due to Claude CLI model prefix incompatibility
+  # Users should use Codex Local or OpenCode Local adapter in Paperclip
 
   return 0
 }
