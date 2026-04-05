@@ -56,8 +56,8 @@ strip_env_keys() {
   tmp="$(mktemp)"
   while IFS= read -r line || [[ -n "$line" ]]; do
     local skip=0
-    for key in "$@"; do
-      if [[ "$line" == "${key}="* ]]; then
+    for env_key in "$@"; do
+      if [[ "$line" == "${env_key}="* ]]; then
         skip=1
         break
       fi

@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# Rotate / print CEO bootstrap invite and refresh START_HERE.txt
+# Rotate / print CEO bootstrap invite and refresh START_HERE.txt (native, no Docker)
 set -euo pipefail
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+
+# Source helper libraries
 # shellcheck source=lib/vps-env.sh
 . "$ROOT/scripts/lib/vps-env.sh"
 # shellcheck source=lib/finalize-invite.sh
@@ -10,15 +13,16 @@ cd "$ROOT"
 # shellcheck source=lib/access-hint.sh
 . "$ROOT/scripts/lib/access-hint.sh"
 
-COMPOSE_FILE="${COMPOSE_FILE:-$ROOT/docker-compose.yml}"
+VENDOR_DIR="${VENDOR_DIR:-$ROOT/vendor/paperclip}"
+
 ilog="$(mktemp)"
 set +e
 if [[ "${1:-}" == "--force" ]]; then
-  docker compose -f "$COMPOSE_FILE" --env-file "$ROOT/.env" exec -T server \
-    sh -c 'cd /app && pnpm paperclipai auth bootstrap-ceo --force' 2>&1 | tee "$ilog"
+    cd "$VENDOR_DIR"
+    pnpm paperclipai auth bootstrap-ceo --force 2>&1 | tee "$ilog"
 else
-  docker compose -f "$COMPOSE_FILE" --env-file "$ROOT/.env" exec -T server \
-    sh -c 'cd /app && pnpm paperclipai auth bootstrap-ceo' 2>&1 | tee "$ilog"
+    cd "$VENDOR_DIR"
+    pnpm paperclipai auth bootstrap-ceo 2>&1 | tee "$ilog"
 fi
 set -e
 

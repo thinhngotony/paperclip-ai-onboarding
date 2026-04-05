@@ -1,0 +1,44 @@
+[Unit]
+Description=Paperclip AI Platform
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=paperclip
+Group=paperclip
+WorkingDirectory=%%VENDOR_DIR%%
+
+# Load environment from /etc/paperclip/.env
+EnvironmentFile=/etc/paperclip/.env
+
+# Additional environment variables (merged with .env)
+Environment=NODE_ENV=production
+Environment=PAPERCLIP_HOME=/var/lib/paperclip
+Environment=PAPERCLIP_INSTANCE_ID=default
+Environment=PAPERCLIP_CONFIG=/var/lib/paperclip/instances/default/config.json
+Environment=HOST=0.0.0.0
+Environment=PORT=3100
+Environment=SERVE_UI=true
+
+# Run the server (use node from PATH to support both /usr/bin and /usr/local/bin)
+ExecStart=/usr/bin/env node --import %%VENDOR_DIR%%/server/node_modules/tsx/dist/loader.mjs %%VENDOR_DIR%%/server/dist/index.js
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/paperclip
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=paperclip
+
+[Install]
+WantedBy=multi-user.target
