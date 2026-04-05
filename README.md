@@ -6,6 +6,16 @@ Automates [Paperclip](https://github.com/paperclipai/paperclip) on a native VPS 
 - **9Router** on the same host: **`./scripts/setup-native.sh`** probes `http://127.0.0.1:<port>/v1/models`, writes **`OPENAI_BASE_URL=http://127.0.0.1:<port>/v1`**, **`OPENAI_API_KEY`**, and **`ANTHROPIC_BASE_URL=http://127.0.0.1:<port>`** (no `/v1`, per [9Router's Claude integration](https://context7.com/decolua/9router/llms.txt)) plus **`ANTHROPIC_API_KEY`** (same Bearer as OpenAI). Keys are chosen from (in order): existing `.env`, **`NINEROUTER_API_KEY`**, the first key in **`apiKeys`** inside 9Router's **`db.json`**, or the placeholder `9router-local` if your 9Router allows open access.
 - **Local-only**: `./scripts/setup-native.sh --local` keeps everything on `127.0.0.1` only.
 
+## Quick Start
+
+See [docs/QUICK_START.md](docs/QUICK_START.md) for step-by-step guide.
+
+**TL;DR:**
+```bash
+./scripts/setup-native.sh
+# Then configure agents to use Codex Local adapter (see docs/ADAPTER_CONFIGURATION.md)
+```
+
 ## Requirements
 
 - Ubuntu 22.04+ or Debian 12+ (other distros may work but require adjustment)
@@ -108,6 +118,16 @@ Environment (optional):
 | `./scripts/print-remote-hint.sh` | SSH tunnel + public URL hints |
 | `START_HERE.txt` | Written by setup / `bootstrap-ceo-native` — invite URL + public app link (gitignored) |
 
+## Configuring Agents to Use 9Router
+
+**See [docs/ADAPTER_CONFIGURATION.md](docs/ADAPTER_CONFIGURATION.md) for detailed guide.**
+
+Quick summary:
+1. Open Paperclip UI
+2. Change agent adapter from "Claude Local" to "Codex Local" or "OpenCode Local"
+3. Select a 9Router model (e.g., `free`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.6`)
+4. Test the agent
+
 ## Manual `.env`
 
 See `.env.example`. If you create `.env` by hand, run `./scripts/reapply-vps-env-native.sh` once so `PAPERCLIP_PUBLIC_URL` and `PAPERCLIP_ALLOWED_HOSTNAMES` are applied.
@@ -134,7 +154,21 @@ Replace the stored OpenAI key (e.g. after creating a key in the 9Router dashboar
 
 ### CEO / agent shows "Not logged in · Please run /login" (`claude_local`)
 
-That adapter does **not** use 9Router's OpenAI path. It needs **either**:
+That adapter does **not** use 9Router's OpenAI path. **RECOMMENDED SOLUTION:** Change the agent adapter in Paperclip UI.
+
+#### Quick Fix: Change Agent Adapter (Recommended)
+
+1. Open Paperclip UI (http://YOUR_IP:3100)
+2. Go to **Settings** → **Agents** (or click on the agent)
+3. Change **Adapter** from "Claude Local" to **"Codex Local"** or **"OpenCode Local"**
+4. Select a 9Router model:
+   - **Free models:** `free`, `gh/gpt-4o-mini`, `gh/claude-haiku-4.5`
+   - **Premium models:** `gh/gpt-5.3-codex`, `gh/claude-opus-4.6`, `cu/claude-4.6-opus-max`, `cx/gpt-5.4`
+   - **View all:** `curl -s http://127.0.0.1:20128/v1/models | python3 -m json.tool`
+
+This makes the agent use `OPENAI_BASE_URL` (pointing to 9Router) instead of Claude CLI.
+
+#### Alternative Solutions (if you want to keep Claude Local adapter)
 
 1. **Anthropic API key** — add to `.env` then restart the service:
    - `ANTHROPIC_API_KEY=sk-ant-api03-...` (from [Anthropic Console](https://console.anthropic.com/))
@@ -148,8 +182,6 @@ That adapter does **not** use 9Router's OpenAI path. It needs **either**:
    ```
 
    Run as you normally SSH into the host; finish sign-in in the browser when the CLI prints a URL.
-
-3. **Avoid Claude for this agent** — in Paperclip, change the CEO (or agent) **adapter** from **Claude Local** to **Codex Local** (or another OpenAI-compatible adapter) so invocations use **`OPENAI_*`** and your 9Router `/v1` setup.
 
 **If you need the Claude adapter via 9Router Anthropic:** configure an **Anthropic** provider in the **9Router dashboard**, set `ANTHROPIC_API_KEY` and the `ANTHROPIC_BASE_URL` 9Router documents, then restart:
 
