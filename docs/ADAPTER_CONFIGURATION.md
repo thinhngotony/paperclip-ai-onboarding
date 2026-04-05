@@ -27,13 +27,20 @@ After changing adapter, select a model from 9Router's available models:
 **Free/Budget Models:**
 - `free` - Free tier model
 - `gh/gpt-4o-mini` - GitHub free tier
-- `gh/claude-haiku-4.5` - GitHub free tier
+- `gh/claude-haiku-4.5` - GitHub free tier (NOT claude-haiku-4-6)
 
 **Premium Models (if you have 9Router credits):**
 - `gh/gpt-5.3-codex` - Latest GPT coding model
 - `gh/claude-opus-4.6` - Latest Claude Opus
+- `gh/claude-sonnet-4.6` - Latest Claude Sonnet
 - `cu/claude-4.6-opus-max` - Cursor tier
 - `cx/gpt-5.4` - Codex tier
+
+**IMPORTANT:** Use exact model IDs from 9Router. Common mistakes:
+- ❌ `claude-haiku-4-6` (doesn't exist)
+- ✅ `gh/claude-haiku-4.5` (correct)
+- ❌ `claude-opus-4-6` (missing prefix)
+- ✅ `gh/claude-opus-4.6` (correct)
 
 **View all available models:**
 ```bash
@@ -61,6 +68,24 @@ If you want to keep using "Claude Local" adapter but route through 9Router:
 **Note:** This requires 9Router to have Anthropic provider configured. Most 9Router setups only have OpenAI-compatible endpoints, so using Codex/OpenCode adapter is simpler.
 
 ## Troubleshooting
+
+### Error: "There's an issue with the selected model (claude-haiku-4-6)"
+**Cause:** Model ID doesn't exist in 9Router or has wrong format
+
+**Solution:** Use correct model ID with provider prefix:
+- ❌ Wrong: `claude-haiku-4-6`, `claude-opus-4-6`
+- ✅ Correct: `gh/claude-haiku-4.5`, `gh/claude-opus-4.6`
+
+**How to find correct model IDs:**
+```bash
+# List all models
+curl -s http://127.0.0.1:20128/v1/models | python3 -m json.tool | grep '"id"'
+
+# List only Claude models
+curl -s http://127.0.0.1:20128/v1/models | python3 -c "import sys,json; models=[m['id'] for m in json.load(sys.stdin)['data'] if 'claude' in m['id'].lower()]; print('\n'.join(sorted(models)))"
+```
+
+Then update the agent's model in Paperclip UI to use the exact ID from the list.
 
 ### Error: "Not logged in · Please run /login"
 **Cause:** Agent is using Claude Local adapter without authentication
@@ -93,6 +118,8 @@ If 9Router shows too many models and you want to limit them:
    - For budget: `free`, `gh/gpt-4o-mini`
 
 ## Model Selection Guide
+
+**See [MODEL_REFERENCE.md](MODEL_REFERENCE.md) for complete list of available models.**
 
 ### By Use Case
 
