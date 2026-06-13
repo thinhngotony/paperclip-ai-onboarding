@@ -90,7 +90,6 @@ run rm -rf "$VENDOR_DIR"
 if [[ "$PURGE_COMPANY" -eq 1 ]]; then
     echo "=== Deleting all company data ==="
     # Get DB URL from the config file before removing /etc/paperclip/.env
-    local db_url_purge
     db_url_purge="$(env_get /etc/paperclip/.env DATABASE_URL 2>/dev/null || echo 'postgres://paperclip:paperclip@localhost:5432/paperclip')"
     run sudo -u postgres psql "$db_url_purge" -c "
         DELETE FROM company_memberships;
