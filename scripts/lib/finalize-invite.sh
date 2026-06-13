@@ -23,6 +23,7 @@ Paperclip — instance is ready
 
 Sign in:
 ${pub}
+Default company 'My Company' created — you are its owner.
 
 (Generated $(date -Iseconds))
 EOF
@@ -44,7 +45,9 @@ write_start_here_pending() {
 			echo "Invite expires: ${expires}"
 			echo ""
 		fi
-		echo "STEP 2 — Then use Paperclip here:"
+		echo "STEP 2 — After signing in, a default company 'My Company' will be created and you will be its owner."
+		echo ""
+		echo "STEP 3 — Then use Paperclip here:"
 		echo " ${pub}"
 		echo ""
 		echo "If the link expired, on the server run:"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Point Paperclip's OPENAI_* and ANTHROPIC_* (Claude Code) at 9Router on the native host.
+# Point Paperclip's OPENAI_* agent settings at 9Router on the native host.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -23,7 +23,7 @@ while [[ $# -gt 0 ]]; do
             echo " --refresh-key Replace OPENAI_API_KEY even if already set in .env"
             echo " --no-recreate Only update .env; do not restart Paperclip"
             exit 0
-        ;;
+            ;;
         *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
     shift
@@ -41,6 +41,7 @@ sed -i 's|host\.docker\.internal|127.0.0.1|g' "$ROOT/.env"
 
 # Copy to /etc/paperclip
 cp "$ROOT/.env" /etc/paperclip/.env
+chown paperclip:paperclip /etc/paperclip/.env
 
 if [[ "$RECREATE" -eq 1 ]]; then
     systemctl restart paperclip
@@ -51,13 +52,18 @@ if [[ "$RECREATE" -eq 1 ]]; then
     url="http://127.0.0.1:${port}/api/health"
 
     echo "Waiting for Paperclip at $url ..."
+    healthy=0
     for i in $(seq 1 30); do
         if curl -sfS "$url" >/dev/null 2>&1; then
             echo "Paperclip is healthy."
+            healthy=1
             break
         fi
         sleep 2
     done
+    if [[ "$healthy" -eq 0 ]]; then
+        echo "Warning: Paperclip did not become healthy. Check: journalctl -u paperclip -n 50" >&2
+    fi
 
     echo "Restarted paperclip service with updated 9Router settings."
 else

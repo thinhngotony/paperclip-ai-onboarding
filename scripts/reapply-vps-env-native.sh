@@ -17,6 +17,7 @@ sed -i 's|host\.docker\.internal|127.0.0.1|g' "$ROOT/.env"
 
 # Copy updated env to /etc/paperclip
 cp "$ROOT/.env" /etc/paperclip/.env
+chown paperclip:paperclip /etc/paperclip/.env
 
 # Restart the service
 systemctl restart paperclip
@@ -27,12 +28,17 @@ port="${port:-3100}"
 url="http://127.0.0.1:${port}/api/health"
 
 echo "Waiting for Paperclip at $url ..."
+healthy=0
 for i in $(seq 1 30); do
     if curl -sfS "$url" >/dev/null 2>&1; then
         echo "Paperclip is healthy."
+        healthy=1
         break
     fi
     sleep 2
 done
+if [[ "$healthy" -eq 0 ]]; then
+    echo "Warning: Paperclip did not become healthy within 60s. Check: journalctl -u paperclip -n 50" >&2
+fi
 
 echo "Updated .env and restarted service. Public base: ${VPS_PUBLIC_URL:-}"

@@ -5,23 +5,23 @@ Requires=postgresql.service
 
 [Service]
 Type=simple
-User=paperclip
-Group=paperclip
+User=%%SVC_USER%%
+Group=%%SVC_USER%%
 WorkingDirectory=%%VENDOR_DIR%%
 
 # Load environment from /etc/paperclip/.env
 EnvironmentFile=/etc/paperclip/.env
 
-# Additional environment variables (merged with .env)
+# Instance / home configuration
+Environment=PAPERCLIP_HOME=%%SVC_HOME%%
+Environment=PAPERCLIP_INSTANCE_ID=%%SVC_INSTANCE%%
+Environment=PAPERCLIP_CONFIG=%%SVC_HOME%%/instances/%%SVC_INSTANCE%%/config.json
 Environment=NODE_ENV=production
-Environment=PAPERCLIP_HOME=/var/lib/paperclip
-Environment=PAPERCLIP_INSTANCE_ID=default
-Environment=PAPERCLIP_CONFIG=/var/lib/paperclip/instances/default/config.json
 Environment=HOST=0.0.0.0
 Environment=PORT=3100
 Environment=SERVE_UI=true
 
-# Run the server (use node from PATH to support both /usr/bin and /usr/local/bin)
+# Run the server (tsx loader resolves via pnpm workspace node_modules)
 ExecStart=/usr/bin/env node --import %%VENDOR_DIR%%/server/node_modules/tsx/dist/loader.mjs %%VENDOR_DIR%%/server/dist/index.js
 
 # Restart policy
@@ -33,7 +33,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/paperclip
+ReadWritePaths=%%SVC_HOME%%
 
 # Logging
 StandardOutput=journal
